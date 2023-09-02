@@ -1,26 +1,21 @@
 import {
 	IAuthenticateGeneric,
-	ICredentialTestRequest,
+	//ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
 
-export class HttpBinApi implements ICredentialType {
-	name = 'httpbinApi';
-	displayName = 'HttpBin API';
-	documentationUrl = '<your-docs-url>';
+export class AzureMessageBusNodeApi implements ICredentialType {
+	name = 'azureMessageBusNodeApi';
+	displayName = 'Azure Message Bus  API';
+	documentationUrl = 'https://test.com';
 	properties: INodeProperties[] = [
 		{
-			displayName: 'Token',
-			name: 'token',
+			displayName: 'Service Bus Connection String',
+			name: 'connectionString',
 			type: 'string',
-			default: '',
-		},
-		{
-			displayName: 'Domain',
-			name: 'domain',
-			type: 'string',
-			default: 'https://httpbin.org',
+			default: 'Endpoint=sb://<HOSTNAME>.servicebus.windows.net/;SharedAccessKeyName=XXXXXXX;SharedAccessKey=XXXXXXXXXX;',
+			hint: 'Note the ; at the end'
 		},
 	];
 
@@ -38,10 +33,13 @@ export class HttpBinApi implements ICredentialType {
 	};
 
 	// The block below tells how this credential can be tested
-	test: ICredentialTestRequest = {
-		request: {
-			baseURL: '={{$credentials?.domain}}',
-			url: '/bearer',
-		},
-	};
+	//test: ICredentialTestRequest = {
+	//	request: {
+	//		baseURL: '={{$credentials?.domain}}',
+//			url: '/bearer',
+//		},
+
+
+
+//	};
 }
