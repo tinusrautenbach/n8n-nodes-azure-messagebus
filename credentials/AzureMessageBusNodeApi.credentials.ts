@@ -17,6 +17,13 @@ export class AzureMessageBusNodeApi implements ICredentialType {
 			default: 'Endpoint=sb://<HOSTNAME>.servicebus.windows.net/;SharedAccessKeyName=XXXXXXX;SharedAccessKey=XXXXXXXXXX;',
 			hint: 'Note the ; at the end'
 		},
+		{
+			displayName: 'QueueName',
+			name: 'qName',
+			type: 'string',
+			default: 'dev-q-name',
+			hint: 'queuname on the service bus connections'
+		},
 	];
 
 	// This allows the credential to be used by other parts of n8n

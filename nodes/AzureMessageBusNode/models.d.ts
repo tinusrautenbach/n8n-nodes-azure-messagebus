@@ -4,6 +4,7 @@ export declare namespace AzMBModels {
 
 	export type Credentials = {
 		connectionString: string;
+		qName:string;
 
 	};
 
