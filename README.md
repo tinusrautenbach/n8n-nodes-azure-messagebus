@@ -24,7 +24,8 @@ send message to azure messagebus
 
 ## Credentials
 
-use your connectionString to the message bus in the format: Endpoint=sb://<HOSTNAME>.servicebus.windows.net/;SharedAccessKeyName=<SHAREDKEYNAME>;SharedAccessKey=<SHAREDKEY>;
+use your connectionString to the message bus in the format:
+``` Endpoint=sb://<HOSTNAME>.servicebus.windows.net/;SharedAccessKeyName=<SHAREDKEYNAME>;SharedAccessKey=<SHAREDKEY>;  ```
 
 Note the ; at the end of the line
 
