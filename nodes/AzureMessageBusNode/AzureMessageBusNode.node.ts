@@ -12,6 +12,8 @@ import {
 import {
 	sendMessage,
 } from './GenericFunctions';
+import { AzMBModels } from './models';
+import { ServiceBusClient } from '@azure/service-bus';
 
 
 export class AzureMessageBusNode implements INodeType {
@@ -36,14 +38,7 @@ export class AzureMessageBusNode implements INodeType {
 		properties: [
 			// Node properties which the user gets displayed and
 			// can change on the node.
-			{
-				displayName: 'Queue Name',
-				name: 'queueName',
-				type: 'string',
-				default: '',
-				placeholder: 'QueueName',
-				description: 'Queue Name on service bus',
-			},
+
 			{
 				displayName: 'Event Name',
 				name: 'event',
@@ -73,6 +68,15 @@ export class AzureMessageBusNode implements INodeType {
 		//let item: INodeExecutionData;
 
 
+		const credentials = await this.getCredentials('azureMessageBusNodeApi') as AzMBModels.Credentials;
+		let connectionString  =  credentials.connectionString;
+
+
+	const endpointUri: string = connectionString + 'EntityPath=' + credentials.qName;
+
+	const serviceBusClient = new ServiceBusClient(endpointUri);
+
+	const sender = serviceBusClient.createSender ( credentials.qName);
 
 		const returnData: IDataObject[] = [];
 		let responseData;
@@ -81,7 +85,7 @@ export class AzureMessageBusNode implements INodeType {
 		// (This could be a different value for each item in case it contains an expression)
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			try {
-				let queueName = this.getNodeParameter('queueName', itemIndex, '') as string;
+
 				let event = this.getNodeParameter('event', itemIndex, '') as string;
 				let data = this.getNodeParameter('data', itemIndex, '') as string;
 
@@ -91,7 +95,7 @@ export class AzureMessageBusNode implements INodeType {
 				let sendItem = [];
 				sendItem.push({body:itemData})
 
-				responseData = await sendMessage.call( this,  queueName, sendItem);
+				responseData = await sendMessage.call( this,  sender, sendItem);
 				console.log("AFTER" + itemIndex);
 
 				returnData.push(responseData as IDataObject);
