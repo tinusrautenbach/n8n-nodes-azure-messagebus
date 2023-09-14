@@ -20,7 +20,7 @@ export class AzureMessageBusNode implements INodeType {
 		name: 'azureMessageBusNode',
 		group: ['transform'],
 		version: 1,
-		icon: 'file:clarity_logo_lime.svg',
+		icon: 'file:azure.svg',
 		description: 'Basic Azure Message Bus Node',
 		defaults: {
 			name: 'Azure Message Bus Node',
