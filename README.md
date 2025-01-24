@@ -1,17 +1,17 @@
-# n8n-nodes-azure-messagebus
+# n8n-nodes-n8n-nodes-azure-messagebus-send-receive
 
-This is an n8n community node. It lets you **send** and **receive** messages from the Azure Message Bus in your n8n workflows.
+This is an n8n community node. It lets you use the azure messagebus in your n8n workflows.
 
-This is a very basic implementation that only allows you to send to or receive from a specific endpoint as part of the node configuration.
+This is a very basic implementation that only allows you to send to a specific endpoint as part of configuration of the node
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
-[Installation](#installation)  
-[Operations](#operations)  
-[Credentials](#credentials)  
-[Compatibility](#compatibility)  
-[Usage](#usage)  
-[Resources](#resources)  
+[Installation](#installation)
+[Operations](#operations)
+[Credentials](#credentials)
+[Compatibility](#compatibility)
+[Usage](#usage)
+[Resources](#resources)
 [Version history](#version-history)
 
 ## Installation
@@ -20,31 +20,54 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ## Operations
 
-* **Send** message to Azure Message Bus  
-* **Receive** message from Azure Message Bus  
+send message to azure messagebus
 
 ## Credentials
 
-Use your connection string to the message bus in the format:
+use your connectionString to the message bus in the format:
 ``` Endpoint=sb://<HOSTNAME>.servicebus.windows.net/;SharedAccessKeyName=<SHAREDKEYNAME>;SharedAccessKey=<SHAREDKEY>;  ```
 
 Note the ; at the end of the line
 
 ## Compatibility
 
-Tested on n8n `1.6.1`.
+Tested on 1.6.1
 
 ## Usage
+
+
 
 _By the time users are looking for community nodes, they probably already know n8n basics. But if you expect new users, you can link to the [Try it out](https://docs.n8n.io/try-it-out/) documentation to help them get started._
 
 ## Resources
 
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
-* [Azure Service Bus Messaging Overview](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview)
+* https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview
 
 ## Version history
 
 v0.0.1 - basic funcionality.  no q change ability to make the node faster
 
+
+## Exemplo de Payload para enviar
+
+```json
+{{ { teste: $json.my_field_1 } }}
+```
+
+### Saída
+
+```json
+[
+  {
+    "success": true,
+    "operation": "send",
+    "topic": "testes",
+    "subscriptionName": "subscription_testes",
+    "messageSent": {
+      "teste": "value"
+    }
+  }
+]
+```
 
