@@ -71,10 +71,10 @@ export class AzureMessageBusNode implements INodeType {
 			},
 			// Propriedade(s) específica(s) para a operação SEND
 			{
-				displayName: 'Message Body',
+				displayName: 'Message Body (JSON)',
 				name: 'messageBody',
-				type: 'string',
-				default: '',
+				type: 'json',   // <--- Importante para tratar como objeto
+				default: {},    // Inicia como {}
 				displayOptions: {
 					show: {
 						operation: [
@@ -82,13 +82,13 @@ export class AzureMessageBusNode implements INodeType {
 						],
 					},
 				},
-				description: 'Conteúdo da mensagem a ser enviada',
+				description: 'Conteúdo da mensagem a ser enviada em formato JSON',
 			},
 			// Propriedade(s) específica(s) para a operação RECEIVE
 			{
 				displayName: 'Maximum Number of Messages',
 				name: 'maxMessages',
-				type: 'number',
+				type: 'number', // <--- Faz mais sentido ser number
 				default: 1,
 				displayOptions: {
 					show: {
@@ -113,12 +113,66 @@ export class AzureMessageBusNode implements INodeType {
 				},
 				description: 'Tempo máximo (em milissegundos) para aguardar mensagens antes de encerrar a requisição',
 			},
+			{
+				displayName: 'Post Processing Action',
+				name: 'postProcess',
+				type: 'options',
+				displayOptions: {
+					show: {
+						operation: [
+							'receive',
+						],
+					},
+				},
+				options: [
+					{
+						name: 'Complete (Remove Message)',
+						value: 'complete',
+						description: 'Automatically mark the message as complete',
+					},
+					{
+						name: 'Abandon (Return to Queue)',
+						value: 'abandon',
+						description: 'Abandon message so it becomes available again in the queue',
+					},
+					{
+						name: 'Dead-Letter',
+						value: 'deadLetter',
+						description: 'Move the message to the dead-letter queue',
+					},
+				],
+				default: 'complete',
+				description: 'What to do with the message after it is received',
+			},
+			{
+				displayName: 'Receive Mode',
+				name: 'receiveMode',
+				type: 'options',
+				displayOptions: {
+					show: {
+						operation: [
+							'receive',
+						],
+					},
+				},
+				options: [
+					{
+						name: 'Receive And Complete',
+						value: 'receiveAndComplete',
+					},
+					{
+						name: 'Peek (Preview Only)',
+						value: 'peek',
+					},
+				],
+				default: 'receiveAndComplete',
+				description: 'Whether to actually remove messages from the queue or just peek at them',
+			},
+
 		],
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-
-		// const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 
 		// Obtenção dos parâmetros
@@ -132,78 +186,86 @@ export class AzureMessageBusNode implements INodeType {
 
 		try {
 			if (operation === 'send') {
-				// Recuperar a mensagem do campo 'messageBody'
-				const messageBody = this.getNodeParameter('messageBody', 0) as string;
+				// "messageBody" já é do tipo "any" (objeto) pois definimos type: 'json'
+				const messageBody = this.getNodeParameter('messageBody', 0);
 
-				// Caso seja fila
-				if (!subscriptionName) {
-					const sender = sbClient.createSender(queueOrTopic);
-					const message: ServiceBusMessage = {
-						body: messageBody,
-					};
-					await sender.sendMessages(message);
-					await sender.close();
+				const sender = sbClient.createSender(queueOrTopic);
+				// Envia o objeto diretamente no body
+				const message: ServiceBusMessage = {
+					body: messageBody,
+				};
+				await sender.sendMessages(message);
+				await sender.close();
 
-					returnData.push({
-						json: {
-							success: true,
-							operation: 'send',
-							queueOrTopic,
-							messageSent: messageBody,
-						},
-					});
-				} else {
-					// Caso seja tópico
-					const sender = sbClient.createSender(queueOrTopic);
-					const message: ServiceBusMessage = {
-						body: messageBody,
-					};
-					await sender.sendMessages(message);
-					await sender.close();
+				// Retorna o objeto JSON, sem \n escapados
+				returnData.push({
+					json: {
+						success: true,
+						operation: 'send',
+						[subscriptionName ? 'topic' : 'queueOrTopic']: queueOrTopic,
+						subscriptionName,
+						messageSent: messageBody,
+					},
+				});
 
-					returnData.push({
-						json: {
-							success: true,
-							operation: 'send',
-							topic: queueOrTopic,
-							subscriptionName,
-							messageSent: messageBody,
-						},
-					});
-				}
 			} else if (operation === 'receive') {
-				// Receber mensagens da fila ou do tópico+subscription
 				const maxMessages = this.getNodeParameter('maxMessages', 0) as number;
 				const maxWaitTime = this.getNodeParameter('maxWaitTime', 0) as number;
 
+				const postProcess = this.getNodeParameter('postProcess', 0) as string;
+				const receiveMode = this.getNodeParameter('receiveMode', 0) as string;
+
 				let messages;
-				if (!subscriptionName) {
-					// Fila
-					const receiver = sbClient.createReceiver(queueOrTopic);
-					messages = await receiver.receiveMessages(maxMessages, {
-						maxWaitTimeInMs: maxWaitTime,
-					});
-
-					// Confirma o processamento das mensagens recebidas
-					for (const msg of messages) {
-						await receiver.completeMessage(msg);
+				if (receiveMode === 'peek') {
+					// "Peek" não remove as mensagens da fila, apenas lê.
+					if (!subscriptionName) {
+						const receiver = sbClient.createReceiver(queueOrTopic);
+						messages = await receiver.peekMessages(maxMessages);
+						// Em peek, não chamamos "completeMessage", pois nada é “recebido” de fato.
+						await receiver.close();
+					} else {
+						const receiver = sbClient.createReceiver(queueOrTopic, subscriptionName);
+						messages = await receiver.peekMessages(maxMessages);
+						await receiver.close();
 					}
-					await receiver.close();
 				} else {
-					// Tópico + Subscription
-					const receiver = sbClient.createReceiver(queueOrTopic, subscriptionName);
-					messages = await receiver.receiveMessages(maxMessages, {
-						maxWaitTimeInMs: maxWaitTime,
-					});
-
-					// Confirma o processamento das mensagens recebidas
-					for (const msg of messages) {
-						await receiver.completeMessage(msg);
+					// "receiveAndComplete" (modelo atual)
+					if (!subscriptionName) {
+						const receiver = sbClient.createReceiver(queueOrTopic);
+						messages = await receiver.receiveMessages(maxMessages, {
+							maxWaitTimeInMs: maxWaitTime,
+						});
+						// Aqui você aplica "postProcess".
+						for (const msg of messages) {
+							if (postProcess === 'complete') {
+								await receiver.completeMessage(msg);
+							} else if (postProcess === 'abandon') {
+								await receiver.abandonMessage(msg);
+							} else if (postProcess === 'deadLetter') {
+								await receiver.deadLetterMessage(msg);
+							}
+						}
+						await receiver.close();
+					} else {
+						const receiver = sbClient.createReceiver(queueOrTopic, subscriptionName);
+						messages = await receiver.receiveMessages(maxMessages, {
+							maxWaitTimeInMs: maxWaitTime,
+						});
+						for (const msg of messages) {
+							if (postProcess === 'complete') {
+								await receiver.completeMessage(msg);
+							} else if (postProcess === 'abandon') {
+								await receiver.abandonMessage(msg);
+							} else if (postProcess === 'deadLetter') {
+								await receiver.deadLetterMessage(msg);
+							}
+						}
+						await receiver.close();
 					}
-					await receiver.close();
 				}
 
-				// Monta o retorno
+
+				// messagesReceived: array contendo o "body" de cada mensagem
 				returnData.push({
 					json: {
 						success: true,
@@ -215,7 +277,7 @@ export class AzureMessageBusNode implements INodeType {
 				});
 			}
 		} catch (error) {
-			// Em caso de erro, você pode lançar a exceção para o n8n tratar
+			// Em caso de erro
 			// eslint-disable-next-line n8n-nodes-base/node-execute-block-wrong-error-thrown
 			throw new Error(`Erro ao executar a operação '${operation}': ${error.message}`);
 		} finally {
