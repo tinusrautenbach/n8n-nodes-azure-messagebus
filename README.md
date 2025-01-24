@@ -1,18 +1,18 @@
 # n8n-nodes-azure-messagebus
 
-This is an n8n community node. It lets you use the azure messagebus in your n8n workflows.
+This is an n8n community node. It lets you **send** and **receive** messages from the Azure Message Bus in your n8n workflows.
 
-This is a very basic implementation that only allows you to send to a specific endpoint as part of configuration of the node
+This is a very basic implementation that only allows you to send to or receive from a specific endpoint as part of the node configuration.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
 [Installation](#installation)  
 [Operations](#operations)  
-[Credentials](#credentials)  <!-- delete if no auth needed -->  
+[Credentials](#credentials)  
 [Compatibility](#compatibility)  
-[Usage](#usage)  <!-- delete if not using this section -->  
+[Usage](#usage)  
 [Resources](#resources)  
-[Version history](#version-history)  <!-- delete if not using this section -->  
+[Version history](#version-history)
 
 ## Installation
 
@@ -20,29 +20,28 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ## Operations
 
-send message to azure messagebus 
+* **Send** message to Azure Message Bus  
+* **Receive** message from Azure Message Bus  
 
 ## Credentials
 
-use your connectionString to the message bus in the format:
+Use your connection string to the message bus in the format:
 ``` Endpoint=sb://<HOSTNAME>.servicebus.windows.net/;SharedAccessKeyName=<SHAREDKEYNAME>;SharedAccessKey=<SHAREDKEY>;  ```
 
 Note the ; at the end of the line
 
 ## Compatibility
 
-Tested on 1.6.1
+Tested on n8n `1.6.1`.
 
 ## Usage
-
-
 
 _By the time users are looking for community nodes, they probably already know n8n basics. But if you expect new users, you can link to the [Try it out](https://docs.n8n.io/try-it-out/) documentation to help them get started._
 
 ## Resources
 
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
-* https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview
+* [Azure Service Bus Messaging Overview](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview)
 
 ## Version history
 
