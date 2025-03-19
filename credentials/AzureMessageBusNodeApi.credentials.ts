@@ -14,8 +14,12 @@ export class AzureMessageBusNodeApi implements ICredentialType {
 			displayName: 'Service Bus Connection String',
 			name: 'connectionString',
 			type: 'string',
-			default: 'Endpoint=sb://<HOSTNAME>.servicebus.windows.net/;SharedAccessKeyName=XXXXXXX;SharedAccessKey=XXXXXXXXXX;',
-			hint: 'Note the ; at the end'
+			typeOptions: {
+				password: true,
+			},
+			default: '',
+			hint: 'Note the ; at the end; Endpoint=sb://<HOSTNAME>.servicebus.windows.net/;SharedAccessKeyName=XXXXXXX;SharedAccessKey=XXXXXXXXXX;',
+
 		},
 		{
 			displayName: 'QueueName',
